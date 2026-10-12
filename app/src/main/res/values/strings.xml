@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Sistema Bodega</string>
+    <string name="title_login">Iniciar Sesión</string>
+    <string name="subtitle_login">Ingrese sus credenciales para acceder</string>
+    <string name="hint_username">Nombre de usuario</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="default_credentials_notice">Credenciales por defecto:\nUsuario: admin | Contraseña: admin</string>
+    <string name="error_empty_fields">Por favor, ingrese el usuario y la contraseña.</string>
+    <string name="error_inactive_user">El usuario se encuentra inactivo. Contacte al administrador.</string>
+    <string name="error_invalid_credentials">Nombre de usuario o contraseña incorrectos.</string>
+
+    <string name="title_main">Panel Principal</string>
+    <string name="welcome_user">¡Bienvenido!</string>
+    <string name="btn_admin_users_roles">Administrar Usuarios y Roles</string>
+    <string name="btn_logout">Cerrar Sesión</string>
+    <string name="logout_confirmation">¿Está seguro de que desea cerrar sesión?</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+
+    <string name="title_admin_users_roles">Gestión de Usuarios y Roles</string>
+    <string name="tab_users">Usuarios</string>
+    <string name="tab_roles">Roles</string>
+    <string name="add_role">Agregar Rol</string>
+    <string name="add_user">Agregar Usuario</string>
+    <string name="hint_nombre_rol">Nombre del Rol</string>
+    <string name="hint_descripcion_rol">Descripción</string>
+    <string name="hint_nombre_completo">Nombre Completo</string>
+    <string name="hint_select_role">Seleccione un Rol</string>
+    <string name="switch_activo">Usuario Activo</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+</resources>
