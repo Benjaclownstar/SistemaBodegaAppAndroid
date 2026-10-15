@@ -52,7 +52,7 @@ public class CategoriasActivity extends AppCompatActivity {
         }
 
         adapter = new ArrayAdapter<Categoria>(this, R.layout.item_categoria,
-                Collections.<Categoria>emptyList()) {
+                new java.util.ArrayList<>()) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
