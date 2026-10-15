@@ -60,6 +60,19 @@ public class SessionManager {
         return pref.getString(KEY_ROLE_NAME, "");
     }
 
+    /**
+     * Indica si el usuario en sesion tiene privilegios de Administrador.
+     *
+     * El rol se deriva del registro del usuario en la base, no de lo que el
+     * usuario haya elegido en la interfaz: por eso se consulta por nombre y no
+     * por id, que depende del orden de insercion del seed.
+     *
+     * @return true solo si el rol de la sesion es Administrador.
+     */
+    public boolean esAdministrador() {
+        return "Administrador".equalsIgnoreCase(getRoleName().trim());
+    }
+
     public void logoutUser() {
         editor.clear();
         editor.apply();
