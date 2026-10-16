@@ -446,13 +446,33 @@ public class ProductoFormActivity extends AppCompatActivity {
             if (textoHistorial.length() > 0) {
                 textoHistorial.append('\n');
             }
-            textoHistorial.append(getString(R.string.linea_movimiento,
-                    movimiento.getFecha() != null ? movimiento.getFecha() : "",
-                    movimiento.getTipo() != null ? movimiento.getTipo() : "",
-                    movimiento.getCantidad(),
-                    movimiento.getUsuario() != null ? movimiento.getUsuario() : ""));
+            textoHistorial.append(lineaDeMovimiento(movimiento));
         }
         tvHistorialMovimientos.setText(textoHistorial.toString());
+    }
+
+    /**
+     * Una línea del historial de movimientos.
+     *
+     * Una ENTRADA con proveedor agrega la razón social de quien entregó la
+     * mercancía; las salidas y las entradas sin proveedor mantienen el formato
+     * de siempre para que la lista no se llene de "Proveedor: " vacíos.
+     */
+    private String lineaDeMovimiento(Movimiento movimiento) {
+        String fecha = movimiento.getFecha() != null ? movimiento.getFecha() : "";
+        String tipo = movimiento.getTipo() != null ? movimiento.getTipo() : "";
+        String usuario = movimiento.getUsuario() != null ? movimiento.getUsuario() : "";
+        String proveedor = movimiento.getRazonSocialProveedor();
+
+        boolean esEntradaConProveedor = TipoMovimiento.ENTRADA.getValor().equals(tipo)
+                && !TextUtils.isEmpty(proveedor);
+        if (!esEntradaConProveedor) {
+            return getString(R.string.linea_movimiento, fecha, tipo,
+                    movimiento.getCantidad(), usuario);
+        }
+        return getString(R.string.linea_movimiento_proveedor, fecha, tipo,
+                movimiento.getCantidad(), usuario,
+                getString(R.string.label_proveedor, proveedor));
     }
 
     /** Posición del spinner para el id de categoría, o 0 si ya no existe. */

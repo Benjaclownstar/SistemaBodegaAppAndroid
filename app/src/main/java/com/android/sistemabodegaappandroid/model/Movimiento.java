@@ -18,12 +18,21 @@ public class Movimiento {
     // Proveedor que entregó la mercancía en una ENTRADA (v4). 0 = sin proveedor;
     // las salidas nunca lo usan, por eso no lleva clave foránea.
     private int idProveedor;
+    // Razón social resuelta del proveedor para mostrarla en el historial.
+    // Vacío cuando el movimiento no tiene proveedor (salidas y entradas sin él).
+    private String razonSocialProveedor;
 
     public Movimiento() {
     }
 
     public Movimiento(int idMovimiento, int idProducto, String tipo, int cantidad,
                       String usuario, String fecha, int idProveedor) {
+        this(idMovimiento, idProducto, tipo, cantidad, usuario, fecha, idProveedor, "");
+    }
+
+    public Movimiento(int idMovimiento, int idProducto, String tipo, int cantidad,
+                      String usuario, String fecha, int idProveedor,
+                      String razonSocialProveedor) {
         this.idMovimiento = idMovimiento;
         this.idProducto = idProducto;
         this.tipo = tipo;
@@ -31,6 +40,7 @@ public class Movimiento {
         this.usuario = usuario;
         this.fecha = fecha;
         this.idProveedor = idProveedor;
+        this.razonSocialProveedor = razonSocialProveedor != null ? razonSocialProveedor : "";
     }
 
     public int getIdMovimiento() {
@@ -89,6 +99,14 @@ public class Movimiento {
         this.idProveedor = idProveedor;
     }
 
+    public String getRazonSocialProveedor() {
+        return razonSocialProveedor != null ? razonSocialProveedor : "";
+    }
+
+    public void setRazonSocialProveedor(String razonSocialProveedor) {
+        this.razonSocialProveedor = razonSocialProveedor != null ? razonSocialProveedor : "";
+    }
+
     @Override
     public String toString() {
         return "Movimiento{idMovimiento=" + idMovimiento
@@ -97,6 +115,7 @@ public class Movimiento {
                 + ", cantidad=" + cantidad
                 + ", fecha='" + fecha + '\''
                 + ", idProveedor=" + idProveedor
+                + ", razonSocialProveedor='" + getRazonSocialProveedor() + '\''
                 + "}";
     }
 }

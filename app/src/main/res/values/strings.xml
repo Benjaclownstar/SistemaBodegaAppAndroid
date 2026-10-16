@@ -93,6 +93,9 @@
     <string name="btn_guardar_producto">Guardar producto</string>
     <string name="sin_movimientos">Todavía no hay movimientos registrados</string>
     <string name="linea_movimiento">%1$s · %2$s · %3$d · %4$s</string>
+    <!-- Historial de movimientos: la ENTRADA con proveedor muestra la razón social
+         (el 5° argumento ya viene etiquetado con label_proveedor). -->
+    <string name="linea_movimiento_proveedor">%1$s · %2$s · %3$d · %4$s · %5$s</string>
 
     <!-- Diálogo de movimiento de stock -->
     <string name="dialog_movimiento_titulo">Movimiento de stock</string>

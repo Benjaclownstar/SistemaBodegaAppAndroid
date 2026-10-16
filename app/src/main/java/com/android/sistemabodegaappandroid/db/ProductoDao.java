@@ -293,23 +293,40 @@ public class ProductoDao {
         }
     }
 
-    /** Lee el historial; conProveedor=false omite la columna agregada en v4. */
+    /**
+     * Lee el historial; conProveedor=false omite la columna agregada en v4.
+     *
+     * La entrada con proveedor se resuelve con un LEFT JOIN a PROVEEDOR para
+     * mostrar la razón social en el historial: los movimientos sin proveedor
+     * quedan con el nombre vacío, sin romper la lectura.
+     */
     private List<Movimiento> leerMovimientos(int idProducto, boolean conProveedor) {
         List<Movimiento> list = new ArrayList<>();
         SQLiteDatabase db = helper.getReadableDatabase();
-        String sql = "SELECT " + DatabaseHelper.COLUMN_MOV_ID
-                + ", " + DatabaseHelper.COLUMN_MOV_ID_PRODUCTO
-                + ", " + DatabaseHelper.COLUMN_MOV_TIPO
-                + ", " + DatabaseHelper.COLUMN_MOV_CANTIDAD
-                + ", " + DatabaseHelper.COLUMN_MOV_USUARIO
-                + ", " + DatabaseHelper.COLUMN_MOV_FECHA
-                + (conProveedor ? ", " + DatabaseHelper.COLUMN_MOV_ID_PROVEEDOR : "")
-                + " FROM " + DatabaseHelper.TABLE_MOVIMIENTO
-                + " WHERE " + DatabaseHelper.COLUMN_MOV_ID_PRODUCTO + " = ?"
-                + " ORDER BY " + DatabaseHelper.COLUMN_MOV_FECHA + " DESC";
+        // Los alias "m" y "pr" son necesarios: id_proveedor existe en ambas
+        // tablas y sin calificar la columna el SQL sería ambiguo.
+        String sql = "SELECT m." + DatabaseHelper.COLUMN_MOV_ID
+                + ", m." + DatabaseHelper.COLUMN_MOV_ID_PRODUCTO
+                + ", m." + DatabaseHelper.COLUMN_MOV_TIPO
+                + ", m." + DatabaseHelper.COLUMN_MOV_CANTIDAD
+                + ", m." + DatabaseHelper.COLUMN_MOV_USUARIO
+                + ", m." + DatabaseHelper.COLUMN_MOV_FECHA
+                + (conProveedor
+                        ? ", m." + DatabaseHelper.COLUMN_MOV_ID_PROVEEDOR
+                                + ", pr." + DatabaseHelper.COLUMN_PROV_RAZON_SOCIAL
+                        : "")
+                + " FROM " + DatabaseHelper.TABLE_MOVIMIENTO + " m"
+                + (conProveedor
+                        ? " LEFT JOIN " + DatabaseHelper.TABLE_PROVEEDOR + " pr"
+                                + " ON m." + DatabaseHelper.COLUMN_MOV_ID_PROVEEDOR
+                                + " = pr." + DatabaseHelper.COLUMN_PROV_ID
+                        : "")
+                + " WHERE m." + DatabaseHelper.COLUMN_MOV_ID_PRODUCTO + " = ?"
+                + " ORDER BY m." + DatabaseHelper.COLUMN_MOV_FECHA + " DESC";
         Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(idProducto)});
         // Si la columna no está, getColumnIndex devuelve -1 y el id queda en 0.
         int indiceProveedor = cursor.getColumnIndex(DatabaseHelper.COLUMN_MOV_ID_PROVEEDOR);
+        int indiceRazonSocial = cursor.getColumnIndex(DatabaseHelper.COLUMN_PROV_RAZON_SOCIAL);
         if (cursor.moveToFirst()) {
             do {
                 Movimiento movimiento = new Movimiento(
@@ -319,7 +336,11 @@ public class ProductoDao {
                         cursor.getInt(3),
                         cursor.getString(4),
                         cursor.getString(5),
-                        indiceProveedor >= 0 ? cursor.getInt(indiceProveedor) : 0);
+                        indiceProveedor >= 0 ? cursor.getInt(indiceProveedor) : 0,
+                        // El LEFT JOIN deja NULL cuando no hubo proveedor: nunca
+                        // se muestra "null" en el historial.
+                        (indiceRazonSocial >= 0 && !cursor.isNull(indiceRazonSocial))
+                                ? cursor.getString(indiceRazonSocial) : "");
                 list.add(movimiento);
             } while (cursor.moveToNext());
         }
