@@ -303,13 +303,13 @@ public class ProductoFormActivity extends AppCompatActivity {
     private void guardarEdicion(String sku, String nombre, String descripcion,
                                 double precioCosto, double precioVenta, int stockMinimo,
                                 int idCategoria, int idProveedor) {
-        // updateProducto no captura la restricción UNIQUE: comprobamos el SKU
-        // antes para no dejar que la base lance la excepción en caliente.
-        for (Producto otro : productoDao.buscarProductos(sku)) {
-            if (otro.getIdProducto() != idProducto && sku.equalsIgnoreCase(otro.getSkuCodigo())) {
-                Toast.makeText(this, R.string.msg_sku_duplicado, Toast.LENGTH_LONG).show();
-                return;
-            }
+        // El UNIQUE de sku_codigo es global: comprobamos contra TODOS los productos
+        // (también deshabilitados) antes de escribir, porque buscarProductos solo
+        // mira los activos y una reasignación a un SKU de un producto dado de baja
+        // acabaría en SQLiteConstraintException sin capturar.
+        if (productoDao.existeSkuEnOtroProducto(sku, idProducto)) {
+            Toast.makeText(this, R.string.msg_sku_duplicado, Toast.LENGTH_LONG).show();
+            return;
         }
 
         producto.setSkuCodigo(sku);

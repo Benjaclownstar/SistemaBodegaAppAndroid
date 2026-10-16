@@ -108,6 +108,35 @@ public class ProductoDao {
     }
 
     /**
+     * RF-03: comprueba si el SKU ya pertenece a OTRO producto, sin filtrar por
+     * {@code activo}.
+     *
+     * El índice UNIQUE de {@code sku_codigo} es global: un producto deshabilitado
+     * sigue ocupando su SKU, así que validarlo solo entre los habilitados
+     * (como hacía {@code buscarProductos}) deja pasar una violación de la
+     * restricción y la app cae. La comparación usa {@code =} con collación
+     * binaria, igual que el propio índice UNIQUE, para no marcar como duplicado
+     * un SKU que la base sí aceptaría. El SKU viaja como argumento parametrizado,
+     * nunca concatenado en el SQL.
+     *
+     * @return true si otro producto (habilitado o no) ya usa ese SKU.
+     */
+    public boolean existeSkuEnOtroProducto(String sku, int idProductoExcluido) {
+        if (sku == null) {
+            return false;
+        }
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM " + DatabaseHelper.TABLE_PRODUCTO
+                        + " WHERE " + DatabaseHelper.COLUMN_PROD_SKU + " = ?"
+                        + " AND " + DatabaseHelper.COLUMN_PROD_ID + " <> ?",
+                new String[]{sku.trim(), String.valueOf(idProductoExcluido)});
+        boolean existe = cursor.moveToFirst() && cursor.getInt(0) > 0;
+        cursor.close();
+        return existe;
+    }
+
+    /**
      * Inserta un producto nuevo.
      * Devuelve -1 si el SKU ya está registrado: la unicidad la garantiza el
      * índice UNIQUE de la tabla y aquí se traduce a un código amigable.
@@ -133,7 +162,10 @@ public class ProductoDao {
         }
     }
 
-    /** Actualiza los datos editables del producto; devuelve false si no había fila. */
+    /**
+     * Actualiza los datos editables del producto; devuelve false si no había fila
+     * o si el SKU choca con el UNIQUE global de la tabla.
+     */
     public boolean updateProducto(Producto p) {
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -146,10 +178,18 @@ public class ProductoDao {
         cv.put(DatabaseHelper.COLUMN_PROD_ID_CATEGORIA, p.getIdCategoria());
         cv.put(DatabaseHelper.COLUMN_PROD_ID_PROVEEDOR, p.getIdProveedor());
         cv.put(DatabaseHelper.COLUMN_PROD_ACTIVO, p.getActivo());
-        int filas = db.update(DatabaseHelper.TABLE_PRODUCTO, cv,
-                DatabaseHelper.COLUMN_PROD_ID + " = ?",
-                new String[]{String.valueOf(p.getIdProducto())});
-        return filas > 0;
+        try {
+            int filas = db.update(DatabaseHelper.TABLE_PRODUCTO, cv,
+                    DatabaseHelper.COLUMN_PROD_ID + " = ?",
+                    new String[]{String.valueOf(p.getIdProducto())});
+            return filas > 0;
+        } catch (SQLiteConstraintException e) {
+            // Respaldo del pre-chequeo: si el SKU sigue ocupado por otro producto
+            // (por una carrera o por un dato que el pre-chequeo no vio), el UNIQUE
+            // global lo rechaza. Se traduce a false en vez de dejar volar la
+            // excepción y que la app se caiga; el caller muestra el error.
+            return false;
+        }
     }
 
     /**
