@@ -479,4 +479,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         categoriaExecutor.execute(() -> destino.postValue(getCategoriasActivas()));
     }
+
+    // ---------------------------------------------------------------------
+    // USUARIOS (CU-27)
+    // ---------------------------------------------------------------------
+
+    /** Hilo dedicado a las consultas reactivas de usuarios. */
+    private static final ExecutorService usuarioExecutor = Executors.newSingleThreadExecutor();
+
+    /** Cache LiveData del listado; se llena solo en la primera suscripción. */
+    private MutableLiveData<List<Usuario>> usuarios;
+
+    /**
+     * CU-27: expone el listado de usuarios como LiveData. La primera
+     * suscripción dispara la consulta inicial en el hilo de E/S.
+     */
+    public LiveData<List<Usuario>> observarUsuarios() {
+        if (usuarios == null) {
+            usuarios = new MutableLiveData<>();
+            refrescarUsuarios();
+        }
+        return usuarios;
+    }
+
+    /**
+     * CU-27: vuelve a consultar la base y publica el resultado. El alta de un
+     * usuario debe llamar a este método para que la lista reactiva se
+     * actualice sola en la interfaz.
+     */
+    public void refrescarUsuarios() {
+        final MutableLiveData<List<Usuario>> destino = usuarios;
+        if (destino == null) {
+            return;
+        }
+        usuarioExecutor.execute(() -> destino.postValue(getAllUsuarios()));
+    }
 }
