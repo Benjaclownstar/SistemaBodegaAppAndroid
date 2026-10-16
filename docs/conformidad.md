@@ -53,6 +53,11 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
 | `feat(movimientos)` | El proveedor de la entrada se muestra en el historial |
 | `fix(proveedores)` | Número de contacto obligatorio en el alta y la edición |
 | `feat(productos)` | Búsqueda reactiva fuera del hilo principal |
+| `fix(seguridad)` | Contraseñas con PBKDF2, sal e iteración, con migración transparente del hash heredado |
+| `fix(seguridad)` | El acceso a la administración reconsulta el rol en la base de datos |
+| `perf(ui)` | Consultas de lista de proveedores y del formulario fuera del hilo principal |
+| `chore(limpieza)` | Recursos e imports sin uso y un chequeo inalcanzable |
+| `fix(db)` | Pasos de migración idempotentes que registran los fallos en vez de silenciarlos |
 
 ## Límites conocidos
 
@@ -66,7 +71,10 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
   `PROVEEDOR` y `PRODUCTO` reciben claves foráneas desde `PRODUCTO` y `MOVIMIENTO`.
   La obligatoriedad del contacto se valida en el formulario, que es lo que exige el
   contrato.
-- **Contraseñas:** `PasswordUtils` usa SHA-256 sin sal, con un respaldo que devuelve la
-  contraseña en claro. Es una decisión heredada del proyecto base; corregirlo cambia los
-  hashes almacenados y requiere migrar las credenciales existentes, por lo que queda
-  fuera de esta entrega.
+- **Contraseñas:** `PasswordUtils` guarda los hashes con **PBKDF2-HMAC-SHA256** (sal
+  aleatoria de 16 bytes por usuario, 120.000 iteraciones, 256 bits, formato
+  autodescriptivo `pbkdf2$iteraciones$sal$hash`). Los hashes heredados (SHA-256 sin sal)
+  siguen verificándose para no romper las bases ya instaladas, y se reescriben con el
+  formato nuevo de forma transparente en el primer inicio de sesión correcto. El acceso
+  a la administración vuelve a comprobar el rol en la base de datos en lugar de confiar
+  en la preferencia de sesión.
