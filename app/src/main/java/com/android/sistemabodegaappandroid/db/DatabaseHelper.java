@@ -287,8 +287,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Autentica al usuario verificando username, contraseña e id_rol/activo.
-     * Retorna el objeto Usuario si es válido y activo, o null.
+     * Autentica al usuario verificando username y contraseña.
+     * Retorna el objeto Usuario si la contraseña coincide, o null.
+     *
+     * Si el hash guardado aún está en el formato heredado (SHA-256 sin sal) y
+     * la contraseña es correcta, la fila se reescribe con PBKDF2: migración
+     * transparente durante el login, sin duplicar la verificación en ningún
+     * otro lado.
      */
     public Usuario autenticar(String username, String rawPassword) {
         Usuario usuario = getUsuarioByUsername(username);
@@ -296,12 +301,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return null; // Usuario no existe
         }
 
-        String inputHash = PasswordUtils.hashPassword(rawPassword);
-        if (usuario.getPasswordHash().equals(inputHash)) {
-            return usuario;
+        String hashAlmacenado = usuario.getPasswordHash();
+        if (!PasswordUtils.verificar(rawPassword, hashAlmacenado)) {
+            return null; // Contraseña incorrecta
         }
 
-        return null; // Contraseña incorrecta
+        if (PasswordUtils.necesitaRehash(hashAlmacenado)) {
+            String hashNuevo = PasswordUtils.hashPassword(rawPassword);
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_USUARIO_PASSWORD_HASH, hashNuevo);
+            this.getWritableDatabase().update(
+                    TABLE_USUARIO, cv,
+                    COLUMN_USUARIO_ID + " = ?",
+                    new String[]{String.valueOf(usuario.getIdUsuario())});
+            usuario.setPasswordHash(hashNuevo);
+        }
+
+        return usuario;
     }
 
     // --- ADMINISTRACIÓN DE ROLES (RF-27) ---
