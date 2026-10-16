@@ -418,24 +418,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_CATEGORIA, null, cv);
     }
 
-    public List<Categoria> getAllCategorias() {
-        List<Categoria> list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_CATEGORIA + " ORDER BY " + COLUMN_CAT_NOMBRE + " ASC", null);
-        if (cursor.moveToFirst()) {
-            do {
-                Categoria cat = new Categoria();
-                cat.setIdCategoria(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CAT_ID)));
-                cat.setNombreCategoria(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CAT_NOMBRE)));
-                cat.setDescripcion(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CAT_DESCRIPCION)));
-                cat.setActivo(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CAT_ACTIVO)));
-                list.add(cat);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return list;
-    }
-
     // --- CU-10: CONSULTAR Y SELECCIONAR CATEGORÍAS (RF-10) ---
 
     /**
