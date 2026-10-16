@@ -262,15 +262,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Busca a un usuario por username.
      */
     public Usuario getUsuarioByUsername(String username) {
+        return buscarUsuarioPor(COLUMN_USUARIO_USERNAME, username);
+    }
+
+    /**
+     * Busca a un usuario por su id.
+     *
+     * Existe para que el guard de la administración reconsulte el rol REAL en
+     * la base en vez de confiar en la preferencia de sesión: la preferencia es
+     * copia, no autoridad.
+     *
+     * @param idUsuario id del usuario a buscar.
+     * @return el usuario con su rol, o null si no existe.
+     */
+    public Usuario getUsuarioById(int idUsuario) {
+        return buscarUsuarioPor(COLUMN_USUARIO_ID, String.valueOf(idUsuario));
+    }
+
+    /**
+     * Consulta parametrizada compartida: la columna es siempre una constante
+     * interna y el valor viaja como argumento de `?`, sin concatenar SQL.
+     */
+    private Usuario buscarUsuarioPor(String columna, String valor) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT u." + COLUMN_USUARIO_ID + ", u." + COLUMN_USUARIO_USERNAME + ", u."
                 + COLUMN_USUARIO_NOMBRE_COMPLETO + ", u." + COLUMN_USUARIO_PASSWORD_HASH + ", u."
                 + COLUMN_USUARIO_ID_ROL + ", u." + COLUMN_USUARIO_ACTIVO + ", r." + COLUMN_ROL_NOMBRE
                 + " FROM " + TABLE_USUARIO + " u INNER JOIN " + TABLE_ROL + " r ON u."
                 + COLUMN_USUARIO_ID_ROL + " = r." + COLUMN_ROL_ID
-                + " WHERE u." + COLUMN_USUARIO_USERNAME + " = ?";
+                + " WHERE u." + columna + " = ?";
 
-        Cursor cursor = db.rawQuery(query, new String[]{username});
+        Cursor cursor = db.rawQuery(query, new String[]{valor});
         Usuario usuario = null;
         if (cursor.moveToFirst()) {
             usuario = new Usuario();

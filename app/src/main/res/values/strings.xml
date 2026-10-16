@@ -151,4 +151,8 @@
 
     <!-- Asociación de proveedor a los movimientos de entrada -->
     <string name="hint_proveedor_movimiento">Proveedor de la entrada</string>
+
+    <!-- Guard de la administración: el rol se reconsulta en la base, la
+         preferencia de sesión es solo copia y no autoriza. -->
+    <string name="msg_acceso_admin_denegado">Su usuario no tiene permiso de Administrador para usar la administración de usuarios y roles</string>
 </resources>
