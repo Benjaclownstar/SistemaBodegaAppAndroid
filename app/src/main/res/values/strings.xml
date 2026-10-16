@@ -7,8 +7,21 @@
     <string name="btn_login">Iniciar Sesión</string>
     <string name="default_credentials_notice">Usuario inicial: admin · Contraseña: admin (cámbiela al entrar)</string>
     <string name="error_empty_fields">Por favor, ingrese el usuario y la contraseña.</string>
-    <string name="error_inactive_user">El usuario se encuentra inactivo. Contacte al administrador.</string>
-    <string name="error_invalid_credentials">Nombre de usuario o contraseña incorrectos.</string>
+    <string name="error_inactive_user">Usuario deshabilitado. Contacte al administrador</string>
+    <string name="error_credenciales">Credenciales inválidas</string>
+    <string name="error_username_duplicado">El nombre de usuario ya se encuentra registrado</string>
+    <string name="msg_usuario_registrado">Usuario registrado exitosamente</string>
+    <string name="msg_categoria_duplicada">Ya existe una categoría registrada con ese nombre</string>
+    <string name="msg_categoria_nombre_vacio">El nombre no puede estar vacío</string>
+    <string name="msg_categoria_registrada">Categoría registrada correctamente</string>
+    <string name="dialog_title_registrar_categoria">Registrar Categoría</string>
+    <string name="msg_rol_invalido">Seleccione un rol válido</string>
+    <string name="msg_error_registrar_usuario">Error al registrar el usuario</string>
+    <string name="msg_campos_obligatorios">Todos los campos son obligatorios</string>
+    <string name="msg_roles_requeridos">Debe registrar al menos un rol antes de crear usuarios</string>
+    <string name="msg_estado_usuario_actualizado">Estado del usuario actualizado</string>
+    <string name="msg_error_actualizar_estado">Error al actualizar estado</string>
+    <string name="msg_sesion_iniciada">Sesión iniciada correctamente</string>
 
     <string name="title_main">Panel Principal</string>
     <string name="welcome_user">¡Bienvenido!</string>

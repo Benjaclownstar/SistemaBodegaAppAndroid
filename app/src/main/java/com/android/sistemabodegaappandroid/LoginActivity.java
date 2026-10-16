@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         Usuario usuarioExistente = dbHelper.getUsuarioByUsername(username);
 
         if (usuarioExistente == null) {
-            Toast.makeText(this, R.string.error_invalid_credentials, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.error_credenciales, Toast.LENGTH_LONG).show();
             // CU-01 flujo alternativo 4a: se limpia la contraseña y el foco
             // vuelve al usuario para corregir el error sin reescribir todo.
             limpiarPasswordYEnfocarUsuario();
@@ -83,13 +83,13 @@ public class LoginActivity extends AppCompatActivity {
             // Asociar el rol asignado (id_rol) a la sesión activa
             sessionManager.createLoginSession(usuarioAutenticado);
 
-            Toast.makeText(this, "Sesión iniciada correctamente", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.msg_sesion_iniciada, Toast.LENGTH_SHORT).show();
 
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
         } else {
-            Toast.makeText(this, R.string.error_invalid_credentials, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.error_credenciales, Toast.LENGTH_LONG).show();
             limpiarPasswordYEnfocarUsuario();
         }
     }

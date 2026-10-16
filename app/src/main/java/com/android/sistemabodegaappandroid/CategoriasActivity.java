@@ -109,25 +109,25 @@ public class CategoriasActivity extends AppCompatActivity {
         TextInputEditText etDesc = view.findViewById(R.id.etDescripcionCategoria);
 
         builder.setView(view)
-                .setTitle("Registrar Categoría")
-                .setPositiveButton("Guardar", (dialog, which) -> {
+                .setTitle(R.string.dialog_title_registrar_categoria)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
                     String nombre = etNombre.getText() != null ? etNombre.getText().toString().trim() : "";
                     String desc = etDesc.getText() != null ? etDesc.getText().toString().trim() : "";
 
                     if (TextUtils.isEmpty(nombre)) {
-                        Toast.makeText(this, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.msg_categoria_nombre_vacio, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     long resultado = dbHelper.insertCategoria(nombre, desc);
                     if (resultado != -1) {
-                        Toast.makeText(this, "Categoría registrada correctamente", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.msg_categoria_registrada, Toast.LENGTH_SHORT).show();
                         cargarListaCategorias();
                     } else {
-                        Toast.makeText(this, "Ya existe una categoría con ese nombre", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.msg_categoria_duplicada, Toast.LENGTH_LONG).show();
                     }
                 })
-                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
 
         builder.create().show();
     }

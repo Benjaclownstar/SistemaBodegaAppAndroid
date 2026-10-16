@@ -59,9 +59,9 @@ public class UsuariosFragment extends Fragment {
             boolean updated = dbHelper.updateUsuarioEstado(usuario.getIdUsuario(), isChecked ? 1 : 0);
             if (updated) {
                 usuario.setActivo(isChecked ? 1 : 0);
-                Toast.makeText(requireContext(), "Estado del usuario actualizado", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), R.string.msg_estado_usuario_actualizado, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "Error al actualizar estado", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), R.string.msg_error_actualizar_estado, Toast.LENGTH_SHORT).show();
             }
         });
         rvUsuarios.setAdapter(adapter);
@@ -86,7 +86,7 @@ public class UsuariosFragment extends Fragment {
     private void showAddUserDialog() {
         List<Rol> roles = dbHelper.getAllRoles();
         if (roles.isEmpty()) {
-            Toast.makeText(requireContext(), "Debe registrar al menos un rol antes de crear usuarios", Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(), R.string.msg_roles_requeridos, Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -112,12 +112,12 @@ public class UsuariosFragment extends Fragment {
                     boolean activo = switchActivo.isChecked();
 
                     if (TextUtils.isEmpty(username) || TextUtils.isEmpty(nombreCompleto) || TextUtils.isEmpty(password)) {
-                        Toast.makeText(requireContext(), "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), R.string.msg_campos_obligatorios, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     if (selectedRol == null) {
-                        Toast.makeText(requireContext(), "Seleccione un rol válido", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), R.string.msg_rol_invalido, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -129,10 +129,10 @@ public class UsuariosFragment extends Fragment {
                     Usuario nuevoUsuario = new Usuario(username, nombreCompleto, "", selectedRol.getIdRol(), activo ? 1 : 0);
                     long result = dbHelper.insertUsuario(nuevoUsuario, password);
                     if (result != -1) {
-                        Toast.makeText(requireContext(), "Usuario registrado con éxito", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), R.string.msg_usuario_registrado, Toast.LENGTH_SHORT).show();
                         loadUsuarios();
                     } else {
-                        Toast.makeText(requireContext(), "Error al registrar el usuario", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), R.string.msg_error_registrar_usuario, Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton(R.string.cancel, null)
