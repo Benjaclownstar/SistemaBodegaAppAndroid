@@ -9,7 +9,7 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
   línea, para que la referencia no quede obsoleta con el próximo cambio.
 - Verificación de compilación: `:app:assembleDebug` y `:app:testDebugUnitTest` con
   `--rerun-tasks` (recompilación completa del árbol de trabajo) en verde:
-  75 pruebas, 0 fallos, 0 errores, 0 omitidas, sobre 13 clases de prueba.
+  78 pruebas, 0 fallos, 0 errores, 0 omitidas, sobre 13 clases de prueba.
 
 ## Módulo de autenticación, usuarios y roles
 
@@ -83,7 +83,8 @@ permisos rige sin volver a iniciar sesión.
   `UNIQUE` de `sku_codigo` es global). `guardarAlta` reintenta una vez si la inserción devuelve
   `-1` por colisión imprevista.
 - **Stock inicial.** El alta expone `etStockInicial`; el campo vacío vale cero y un valor
-  negativo o no numérico se rechaza con `msg_valores_invalidos`. El producto se inserta en
+  negativo se rechaza con `msg_valores_invalidos` (el campo es `inputType="number"`, así que
+  no admite texto; `parseEntero` devuelve `0` ante algo que no sea número). El producto se inserta en
   cero y el stock inicial se asienta como una entrada auditada (`ProductoDao.actualizarStock`
   con `TipoMovimiento.ENTRADA`), de modo que el historial muestra de dónde salieron las
   existencias en vez de aparecer como un número sin origen. La edición no expone el campo:
@@ -100,10 +101,17 @@ idempotente: cada paso comprueba con `PRAGMA table_info` si la columna ya está
 (`DatabaseHelper.columnaExisteEnTabla` / `agregarColumnaSiFalta`), de modo que un `ALTER TABLE`
 interrumpido a medias se reintenta en el siguiente arranque en lugar de dejarse caer.
 
+La v5 no solo agrega la columna: además **rellena** los roles que ya existían
+(`DatabaseHelper.rellenarPermisosDeRolesExistentes`). Como a partir de esta versión la columna
+es lo que autoriza, dejarla en `NULL` habría dejado sin acceso a ningún módulo a cualquier
+instalación que se actualizara, administrador incluido. El relleno replica el modelo de acceso
+anterior —`Administrador` recibe los cinco módulos y el resto los de inventario—, solo toca las
+filas vacías, y la ruta v4→v5 está simulada contra SQLite en `simular_migracion_v5.py`.
+
 | Versión | Cambio |
 | --- | --- |
 | v4 | `MOVIMIENTO.id_proveedor` para asociar la entrada a su proveedor |
-| v5 | `ROL.permisos` para los módulos habilitados por rol |
+| v5 | `ROL.permisos` para los módulos habilitados por rol, con relleno de los roles existentes |
 
 El rol semilla `Administrador` se inserta con el juego completo de permisos
 (`USUARIOS,PRODUCTOS,CATEGORIAS,PROVEEDORES,MOVIMIENTOS`).
@@ -136,7 +144,7 @@ El rol semilla `Administrador` se inserta con el juego completo de permisos
 
 ## Límites conocidos
 
-- **Pruebas:** las 75 pruebas unitarias del módulo verifican estructura (presencia de
+- **Pruebas:** las 78 pruebas unitarias del módulo verifican estructura (presencia de
   métodos, de columnas del esquema y de cadenas en los recursos), no comportamiento en
   ejecución. No hay pruebas instrumentadas ni Robolectric, por lo que las correcciones de
   base de datos están verificadas por compilación y revisión del código, no por ejecución
