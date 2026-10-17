@@ -9,7 +9,7 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
   línea, para que la referencia no quede obsoleta con el próximo cambio.
 - Verificación de compilación: `:app:assembleDebug` y `:app:testDebugUnitTest` con
   `--rerun-tasks` (recompilación completa del árbol de trabajo) en verde:
-  63 pruebas, 0 fallos, 0 errores, 0 omitidas, sobre 11 clases de prueba.
+  75 pruebas, 0 fallos, 0 errores, 0 omitidas, sobre 13 clases de prueba.
 
 ## Módulo de autenticación, usuarios y roles
 
@@ -20,18 +20,28 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
 | RF-27 Administrar usuarios y roles | Cumple | `UsuariosFragment`, `RolesFragment`, `DatabaseHelper.isUsernameExists` / `isRoleNameExists` (`COLLATE NOCASE`) / `insertUsuario` / `updateUsuario` / `deleteUsuario` / `getAllRoles` / `insertRol` / `updateRol` / `deleteRol` |
 | CU-01 Iniciar sesión | Cumple | `LoginActivity`; mensajes en `strings.xml` (`error_inactive_user`, `error_credenciales`); foco al campo de usuario y sesión cifrada en `SessionManager` |
 | CU-02 Cerrar sesión | Cumple | `MainActivity.mostrarDialogoCerrarSesion` con `AlertDialog` |
-| CU-27 Administrar usuarios y roles | Cumple con desviación | `UsuariosFragment` con `tilUsername.setError` para el duplicado y listado reactivo (`DatabaseHelper.observarUsuarios`); `RolesFragment` con permisos por rol y baja protegida por `DatabaseHelper.deleteRol` |
+| CU-27 Administrar usuarios y roles | Cumple | `UsuariosFragment` con `tilUsername.setError` para el duplicado y listado reactivo (`DatabaseHelper.observarUsuarios`); `RolesFragment` persiste los permisos por rol y la baja está protegida por `DatabaseHelper.deleteRol`; esos permisos son los que autorizan el acceso (`Permisos.tiene`, `AccesoModulo.permitido`) |
 
 ### Edición, baja y permisos (RF-27)
 
-**Desviación declarada — los permisos se persisten, pero todavía no autorizan.** El
-contrato pide «definir permisos por rol» y la aplicación los guarda y los vuelve a
-mostrar al editar, pero ninguna pantalla consulta `ROL.permisos`: el único control de
-acceso del código compara el nombre literal del rol (`UserRoleAdminActivity.rolRealEsAdministrador`
-y `SessionManager.esAdministrador`). Es decir, un rol nuevo con el permiso de
-administración marcado no entra a la administración, y renombrar `Administrador` deja
-fuera a sus usuarios. Queda como pendiente con camino claro: sustituir la comparación
-por nombre por una consulta a `ROL.permisos`.
+**Los permisos del rol autorizan el acceso.** `ROL.permisos` no se limita a guardarse y
+volver a mostrarse: `Permisos.tiene` compara por token completo y `DatabaseHelper.getPermisosDeRol`
+lee la columna, de modo que el juego de permisos de un rol decide qué módulos abre.
+`SessionManager.tienePermiso` consulta la base en cada apertura, así que un cambio de
+permisos rige sin volver a iniciar sesión.
+
+- **Panel.** `MainActivity.mostrarSegunPermiso` aplica la visibilidad de los cuatro
+  accesos: usuarios y roles con `USUARIOS`, categorías con `CATEGORIAS`, productos con
+  `PRODUCTOS` y proveedores con `PROVEEDORES`.
+- **Puerta de cada módulo.** Ocultar el botón no alcanza, porque la actividad puede abrirse
+  con un intent directo o quedar en una tarea restaurada: `AccesoModulo.permitido` vuelve
+  a validar el permiso al crear `CategoriasActivity`, `ProductosActivity` y
+  `ProveedoresActivity`, y `UserRoleAdminActivity.rolRealPuedeAdministrarUsuarios` hace lo
+  propio con `USUARIOS` sobre la fila real de `USUARIO`, con el rol reconsultado en la
+  base y no tomado de la copia de la sesión.
+- **Efecto observable.** Un rol con el permiso `USUARIOS` marcado entra a la administración
+  aunque no se llame `Administrador`, y un rol como `Vendedor` (`PRODUCTOS,CATEGORIAS`) no
+  ve ni abre proveedores ni movimientos. Antes el nombre del rol era la única llave.
 
 - **Roles.** `Rol.permisos` persiste los módulos habilitados. `dialog_add_rol.xml` los
   expone como casillas y `RolesFragment` reutiliza el mismo diálogo para el alta y para
@@ -59,7 +69,7 @@ por nombre por una consulta a `ROL.permisos`.
 
 | Ítem | Estado | Evidencia |
 | --- | --- | --- |
-| RF-03 Registrar productos | Cumple | `ProductoFormActivity` + `ProductoDao.insertProducto` (SKU único, stock inicial ≥ 0) y `ProductoDao.existeSkuEnOtroProducto` |
+| RF-03 Registrar productos | Cumple | `ProductoFormActivity` expone el stock inicial, lo valida (`≥ 0`) y lo asienta como entrada auditada; `ProductoDao.insertProducto` (SKU único) y `ProductoDao.existeSkuEnOtroProducto` |
 | RF-04 & RF-05 Consultar y buscar | Cumple | `ProductosActivity` observa `DatabaseHelper.observarProductos`; consulta por nombre o SKU en un hilo de trabajo, no en el hilo principal |
 | RF-07 Modificar productos | Cumple | `ProductoFormActivity.guardarEdicion` + `ProductoDao.updateProducto` |
 | RF-08 Deshabilitar productos | Cumple | `ProductoDao.updateProductoEstado` (baja lógica: `activo = 0`, sin borrar la fila) |
@@ -72,6 +82,12 @@ por nombre por una consulta a `ROL.permisos`.
   y verifica la unicidad contra todos los productos, incluidos los deshabilitados (el índice
   `UNIQUE` de `sku_codigo` es global). `guardarAlta` reintenta una vez si la inserción devuelve
   `-1` por colisión imprevista.
+- **Stock inicial.** El alta expone `etStockInicial`; el campo vacío vale cero y un valor
+  negativo o no numérico se rechaza con `msg_valores_invalidos`. El producto se inserta en
+  cero y el stock inicial se asienta como una entrada auditada (`ProductoDao.actualizarStock`
+  con `TipoMovimiento.ENTRADA`), de modo que el historial muestra de dónde salieron las
+  existencias en vez de aparecer como un número sin origen. La edición no expone el campo:
+  el stock se cambia con movimientos (RF-07).
 - **Proveedor opcional.** El formulario envía `0` cuando el usuario elige *Sin proveedor*. Con
   las claves foráneas activas, `0` no existe en `PROVEEDOR` y el alta fallaba siempre con
   `FOREIGN KEY constraint failed`; `ProductoDao.insertProducto` y `ProductoDao.updateProducto`
@@ -115,10 +131,12 @@ El rol semilla `Administrador` se inserta con el juego completo de permisos
 | `fix(productos)` | `NULL` en `id_proveedor` cuando el producto no tiene proveedor |
 | `feat(productos)` | SKU generado automáticamente cuando el usuario no lo indica |
 | `feat(icono)` | Rediseño del icono del lanzador y variante monocroma |
+| `feat(permisos)` | Los permisos del rol autorizan el acceso a los módulos |
+| `feat(productos)` | Stock inicial en el alta, validado y auditado como entrada |
 
 ## Límites conocidos
 
-- **Pruebas:** las 63 pruebas unitarias del módulo verifican estructura (presencia de
+- **Pruebas:** las 75 pruebas unitarias del módulo verifican estructura (presencia de
   métodos, de columnas del esquema y de cadenas en los recursos), no comportamiento en
   ejecución. No hay pruebas instrumentadas ni Robolectric, por lo que las correcciones de
   base de datos están verificadas por compilación y revisión del código, no por ejecución
@@ -137,12 +155,14 @@ El rol semilla `Administrador` se inserta con el juego completo de permisos
   código en vez de en `strings.xml`, a diferencia del resto de la aplicación.
 - **Esquema:** reforzar `NOT NULL` en `PROVEEDOR.telefono` o agregar
   `CHECK (stock_actual >= 0)` en SQLite obliga a reconstruir la tabla, y `PROVEEDOR` y
-  `PRODUCTO` reciben claves foráneas desde `PRODUCTO` y `MOVIMIENTO`. La obligatoriedad
-  del contacto se valida en el formulario, que es lo que exige el contrato.
+  `PRODUCTO` reciben claves foráneas desde `PRODUCTO` y `MOVIMIENTO`. Las dos reglas se
+  validan en los formularios, que es lo que exige el contrato, y no en la base: el contacto
+  en el alta y la edición de proveedores, y el stock porque siempre entra por movimientos
+  que ya rechazan la salida sin existencias.
 - **Contraseñas:** `PasswordUtils` guarda los hashes con **PBKDF2-HMAC-SHA256** (sal
   aleatoria de 16 bytes por usuario, 120.000 iteraciones, 256 bits, formato
   autodescriptivo `pbkdf2$iteraciones$sal$hash`). Los hashes heredados (SHA-256 sin sal)
   siguen verificándose para no romper las bases ya instaladas, y se reescriben con el
   formato nuevo de forma transparente en el primer inicio de sesión correcto. El acceso
-  a la administración vuelve a comprobar el rol en la base de datos en lugar de confiar
-  en la preferencia de sesión.
+  a la administración vuelve a comprobar el rol y sus permisos en la base de datos en
+  lugar de confiar en la preferencia de sesión.
