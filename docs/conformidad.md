@@ -16,10 +16,10 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
 | Ítem | Estado | Evidencia |
 | --- | --- | --- |
 | RF-01 Iniciar sesión | Cumple | `LoginActivity` → `DatabaseHelper.autenticar` (solo `activo = 1`) y `SessionManager.createLoginSession` |
-| RF-02 Cerrar sesión | Cumple | `SessionManager.logout` + `MainActivity` (`NEW_TASK` \| `CLEAR_TASK`) |
+| RF-02 Cerrar sesión | Cumple | `SessionManager.logoutUser` + `MainActivity` (`NEW_TASK` \| `CLEAR_TASK`) |
 | RF-27 Administrar usuarios y roles | Cumple | `UsuariosFragment`, `RolesFragment`, `DatabaseHelper.isUsernameExists` / `isRoleNameExists` (`COLLATE NOCASE`) / `insertUsuario` / `updateUsuario` / `deleteUsuario` / `getAllRoles` / `insertRol` / `updateRol` / `deleteRol` |
 | CU-01 Iniciar sesión | Cumple | `LoginActivity`; mensajes en `strings.xml` (`error_inactive_user`, `error_credenciales`); foco al campo de usuario y sesión cifrada en `SessionManager` |
-| CU-02 Cerrar sesión | Cumple | `MainActivity.confirmarCierreSesion` con `AlertDialog` |
+| CU-02 Cerrar sesión | Cumple | `MainActivity.mostrarDialogoCerrarSesion` con `AlertDialog` |
 | CU-27 Administrar usuarios y roles | Cumple | `UsuariosFragment` con `tilUsername.setError` para el duplicado y listado reactivo (`DatabaseHelper.observarUsuarios`); `RolesFragment` con permisos por rol y baja protegida por `DatabaseHelper.deleteRol` |
 
 ### Edición, baja y permisos (RF-27)
@@ -53,8 +53,8 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
 | RF-03 Registrar productos | Cumple | `ProductoFormActivity` + `ProductoDao.insertProducto` (SKU único, stock inicial ≥ 0) y `ProductoDao.existeSkuEnOtroProducto` |
 | RF-04 & RF-05 Consultar y buscar | Cumple | `ProductosActivity` observa `DatabaseHelper.observarProductos`; consulta por nombre o SKU en un hilo de trabajo, no en el hilo principal |
 | RF-07 Modificar productos | Cumple | `ProductoFormActivity.guardarEdicion` + `ProductoDao.updateProducto` |
-| RF-08 Deshabilitar productos | Cumple | `ProductoDao.deshabilitarProducto` (baja lógica: `activo = 0`, sin borrar la fila) |
-| Entradas y salidas de stock | Cumple | `ProductoFormActivity` + `dialog_movimiento_stock.xml` + `ProductoDao.registrarMovimiento`, que rechaza la salida sin stock suficiente |
+| RF-08 Deshabilitar productos | Cumple | `ProductoDao.updateProductoEstado` (baja lógica: `activo = 0`, sin borrar la fila) |
+| Entradas y salidas de stock | Cumple | `ProductoFormActivity` + `dialog_movimiento_stock.xml` + `ProductoDao.actualizarStock`, que rechaza la salida sin stock suficiente |
 
 ### SKU automático y proveedor opcional
 
