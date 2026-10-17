@@ -15,14 +15,23 @@ documento **Casos de Uso - 1** contra el código de producción de la aplicació
 
 | Ítem | Estado | Evidencia |
 | --- | --- | --- |
-| RF-01 Iniciar sesión | Cumple | `LoginActivity` → `DatabaseHelper.autenticar` (solo `activo = 1`) y `SessionManager.createLoginSession` |
+| RF-01 Iniciar sesión | Cumple | `LoginActivity.intentarIniciarSesion` filtra los usuarios inactivos (`activo = 1`) antes de llamar a `DatabaseHelper.autenticar`, que solo compara credenciales; `SessionManager.createLoginSession` abre la sesión |
 | RF-02 Cerrar sesión | Cumple | `SessionManager.logoutUser` + `MainActivity` (`NEW_TASK` \| `CLEAR_TASK`) |
 | RF-27 Administrar usuarios y roles | Cumple | `UsuariosFragment`, `RolesFragment`, `DatabaseHelper.isUsernameExists` / `isRoleNameExists` (`COLLATE NOCASE`) / `insertUsuario` / `updateUsuario` / `deleteUsuario` / `getAllRoles` / `insertRol` / `updateRol` / `deleteRol` |
 | CU-01 Iniciar sesión | Cumple | `LoginActivity`; mensajes en `strings.xml` (`error_inactive_user`, `error_credenciales`); foco al campo de usuario y sesión cifrada en `SessionManager` |
 | CU-02 Cerrar sesión | Cumple | `MainActivity.mostrarDialogoCerrarSesion` con `AlertDialog` |
-| CU-27 Administrar usuarios y roles | Cumple | `UsuariosFragment` con `tilUsername.setError` para el duplicado y listado reactivo (`DatabaseHelper.observarUsuarios`); `RolesFragment` con permisos por rol y baja protegida por `DatabaseHelper.deleteRol` |
+| CU-27 Administrar usuarios y roles | Cumple con desviación | `UsuariosFragment` con `tilUsername.setError` para el duplicado y listado reactivo (`DatabaseHelper.observarUsuarios`); `RolesFragment` con permisos por rol y baja protegida por `DatabaseHelper.deleteRol` |
 
 ### Edición, baja y permisos (RF-27)
+
+**Desviación declarada — los permisos se persisten, pero todavía no autorizan.** El
+contrato pide «definir permisos por rol» y la aplicación los guarda y los vuelve a
+mostrar al editar, pero ninguna pantalla consulta `ROL.permisos`: el único control de
+acceso del código compara el nombre literal del rol (`UserRoleAdminActivity.rolRealEsAdministrador`
+y `SessionManager.esAdministrador`). Es decir, un rol nuevo con el permiso de
+administración marcado no entra a la administración, y renombrar `Administrador` deja
+fuera a sus usuarios. Queda como pendiente con camino claro: sustituir la comparación
+por nombre por una consulta a `ROL.permisos`.
 
 - **Roles.** `Rol.permisos` persiste los módulos habilitados. `dialog_add_rol.xml` los
   expone como casillas y `RolesFragment` reutiliza el mismo diálogo para el alta y para
