@@ -183,4 +183,10 @@ public class LoginActivity extends AppCompatActivity {
         etPassword.setText("");
         etUsername.requestFocus();
     }
+
+    // Botón Ubicacion
+    private void btnUbicacion() {
+        Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+        startActivity(intent);
+    }
 }

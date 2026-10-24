@@ -154,5 +154,13 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <Button
+            android:id="@+id/btnUbicacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ubicación"
+            tools:layout_editor_absoluteX="136dp"
+            tools:layout_editor_absoluteY="628dp" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
